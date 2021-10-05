@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-import argparse,logging,time,sys,os,json
-sys.path.append('..')
+#!/usr/bin/env python import argparse,logging,time,sys,os,json sys.path.append('..')
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logger = logging.getLogger(__name__)
@@ -23,6 +21,8 @@ DEFAULT_LEARNING_RATE = 0.001
 DEFAULT_IMAGE_SIZE = 72
 DEFAULT_PATCH_SIZE = 6
 DEFAULT_PROJECTION_DIM = 64
+DEFAULT_NUM_HEADS = 4
+DEFAULT_TRANSFORMER_LAYERS = 8
 DEFUALT_OUTPUT = __file__.replace('.py','.json')
 DEFAULT_INTEROP = int(os.cpu_count() / 4)
 DEFAULT_INTRAOP = int(os.cpu_count() / 4)
@@ -40,13 +40,13 @@ def main():
    parser.add_argument('-lr','--learning-rate',help='learning rate for training [DEFAULT=%d]' % DEFAULT_LEARNING_RATE,default=DEFAULT_LEARNING_RATE,type=int)
    parser.add_argument('-im','--image-size',help='Dimension image will be resized to for training [DEFAULT=%d]' % DEFAULT_IMAGE_SIZE,default=DEFAULT_IMAGE_SIZE,type=int)
    parser.add_argument('-p','--patch-size',help='Size of image patches [DEFAULT=%d]' % DEFAULT_PATCH_SIZE,default=DEFAULT_PATCH_SIZE,type=int)
-   parser.add_argument('-pr','--projection_dim',help='Dimension that image patches will be projected into [DEFAULT=%d]' % DEFAULT_PROJECTION_DIM,default=DEFAULT_PROJECTION_DIM,type=int)
+   parser.add_argument('-pr','--projection-dim',help='Dimension that image patches will be projected into [DEFAULT=%d]' % DEFAULT_PROJECTION_DIM,default=DEFAULT_PROJECTION_DIM,type=int)
+   parser.add_argument('-h','--num-heads',help='Number of attention heads in model [DEFAULT=%d]' % DEFAULT_NUM_HEADS,default=DEFAULT_NUM_HEADS,type=int)
+   parser.add_argument('-tl','--transformer-layers',help='Number of transformer layers in model [DEFAULT=%d]' % DEFAULT_TRANSFORMER_LAYERS,default=DEFAULT_TRANSFORMER_LAYERS,type=int)
    parser.add_argument('-o','--output',help='output json filename where metrics will be stored[DEFAULT=%s]' % DEFUALT_OUTPUT,default=DEFUALT_OUTPUT)
 
    parser.add_argument('--interop',type=int,help='set Tensorflow "inter_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTEROP,default=DEFAULT_INTEROP)
-   parser.add_argument('--intraop',type=int,help='set Tensorflow "intra_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTRAOP,default=DEFAULT_INTRAOP)
-   
-   parser.add_argument('--horovod', default=False, action='store_true', help="Use MPI with horovod")
+   parser.add_argument('--intraop',type=int,help='set Tensorflow "intra_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTRAOP,default=DEFAULT_INTRAOP) parser.add_argument('--horovod', default=False, action='store_true', help="Use MPI with horovod")
 
    parser.add_argument('--debug', dest='debug', default=False, action='store_true', help="Set Logger to DEBUG")
    parser.add_argument('--error', dest='error', default=False, action='store_true', help="Set Logger to ERROR")
@@ -230,12 +230,13 @@ image_size = args.image-size  # We'll resize input images to this size
 patch_size = args.patch-size  # Size of the patches to be extract from the input images
 num_patches = (image_size // patch_size) ** 2
 projection_dim = args.projection-dim
-num_heads = 4
+num_heads = args.num_heads
 transformer_units = [
     projection_dim * 2,
     projection_dim,
 ]  # Size of the transformer layers
-transformer_layers = 8
+transformer_layers = args.transformer-layers
+
 mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
 
 def mlp(x, hidden_units, dropout_rate):

@@ -57,6 +57,24 @@ def main():
    parser.add_argument('--logfilename',dest='logfilename',default=None,help='if set, logging information will go to file')
    args = parser.parse_args()
 
+    ###
+   global num_classes = 10
+   global input_shape = (28,28,1)
+   global batch_size = args.batch-size
+   global image_size = args.image-size  # We'll resize input images to this size
+   global patch_size = args.patch-size  # Size of the patches to be extract from the input images
+   global num_patches = (image_size // patch_size) ** 2
+   global projection_dim = args.projection-dim
+   global num_heads = args.num_heads
+   global transformer_units = [
+       projection_dim * 2,
+       projection_dim,
+   ]  # Size of the transformer layers
+   global transformer_layers = args.transformer-layers
+
+   global mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+    ###
+
    hvd = None
    rank = 0
    nranks = 1
@@ -226,10 +244,7 @@ def main():
 ##############
 num_classes = 10
 input_shape = (28,28,1)
-
-#weight_decay = 0.0001
-#batch_size = 1
-#num_epochs = 100
+batch_size = args.batch-size
 image_size = args.image-size  # We'll resize input images to this size
 patch_size = args.patch-size  # Size of the patches to be extract from the input images
 num_patches = (image_size // patch_size) ** 2

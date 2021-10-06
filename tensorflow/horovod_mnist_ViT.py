@@ -1,4 +1,6 @@
-#!/usr/bin/env python import argparse,logging,time,sys,os,json sys.path.append('..')
+#!/usr/bin/env python 
+import argparse,logging,time,sys,os,json
+sys.path.append('..')
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logger = logging.getLogger(__name__)
@@ -46,11 +48,13 @@ def main():
    parser.add_argument('-o','--output',help='output json filename where metrics will be stored[DEFAULT=%s]' % DEFUALT_OUTPUT,default=DEFUALT_OUTPUT)
 
    parser.add_argument('--interop',type=int,help='set Tensorflow "inter_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTEROP,default=DEFAULT_INTEROP)
-   parser.add_argument('--intraop',type=int,help='set Tensorflow "intra_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTRAOP,default=DEFAULT_INTRAOP) parser.add_argument('--horovod', default=False, action='store_true', help="Use MPI with horovod")
+   parser.add_argument('--intraop',type=int,help='set Tensorflow "intra_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTRAOP,default=DEFAULT_INTRAOP)
+   parser.add_argument('--horovod', default=False, action='store_true', help="Use MPI with horovod")
 
    parser.add_argument('--debug', dest='debug', default=False, action='store_true', help="Set Logger to DEBUG")
    parser.add_argument('--error', dest='error', default=False, action='store_true', help="Set Logger to ERROR")
-   parser.add_argument('--warning', dest='warning', default=False, action='store_true', help="Set Logger to ERROR") parser.add_argument('--logfilename',dest='logfilename',default=None,help='if set, logging information will go to file')
+   parser.add_argument('--warning', dest='warning', default=False, action='store_true', help="Set Logger to ERROR")
+   parser.add_argument('--logfilename',dest='logfilename',default=None,help='if set, logging information will go to file')
    args = parser.parse_args()
 
    hvd = None

@@ -38,13 +38,13 @@ def main():
    parser = argparse.ArgumentParser(description='')
    parser.add_argument('-i','--input',help='path to mnist dataset on disk. Use "wget https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz" if you need to download it.',required=True)
    parser.add_argument('-e','--epochs',help='number of epochs to train [DEFAULT=%d]' % DEFAULT_EPOCHS,default=DEFAULT_EPOCHS,type=int)
-   parser.add_argument('-b','--batch-size',help='batch size for training [DEFAULT=%d]' % DEFAULT_BATCH_SIZE,default=DEFAULT_BATCH_SIZE,type=int)
-   parser.add_argument('-lr','--learning-rate',help='learning rate for training [DEFAULT=%d]' % DEFAULT_LEARNING_RATE,default=DEFAULT_LEARNING_RATE,type=int)
-   parser.add_argument('-im','--image-size',help='Dimension image will be resized to for training [DEFAULT=%d]' % DEFAULT_IMAGE_SIZE,default=DEFAULT_IMAGE_SIZE,type=int)
-   parser.add_argument('-p','--patch-size',help='Size of image patches [DEFAULT=%d]' % DEFAULT_PATCH_SIZE,default=DEFAULT_PATCH_SIZE,type=int)
-   parser.add_argument('-pr','--projection-dim',help='Dimension that image patches will be projected into [DEFAULT=%d]' % DEFAULT_PROJECTION_DIM,default=DEFAULT_PROJECTION_DIM,type=int)
-   parser.add_argument('-h','--num-heads',help='Number of attention heads in model [DEFAULT=%d]' % DEFAULT_NUM_HEADS,default=DEFAULT_NUM_HEADS,type=int)
-   parser.add_argument('-tl','--transformer-layers',help='Number of transformer layers in model [DEFAULT=%d]' % DEFAULT_TRANSFORMER_LAYERS,default=DEFAULT_TRANSFORMER_LAYERS,type=int)
+   parser.add_argument('-b','--batch_size',help='batch size for training [DEFAULT=%d]' % DEFAULT_BATCH_SIZE,default=DEFAULT_BATCH_SIZE,type=int)
+   parser.add_argument('-lr','--learning_rate',help='learning rate for training [DEFAULT=%d]' % DEFAULT_LEARNING_RATE,default=DEFAULT_LEARNING_RATE,type=int)
+   parser.add_argument('-im','--image_size',help='Dimension image will be resized to for training [DEFAULT=%d]' % DEFAULT_IMAGE_SIZE,default=DEFAULT_IMAGE_SIZE,type=int)
+   parser.add_argument('-p','--patch_size',help='Size of image patches [DEFAULT=%d]' % DEFAULT_PATCH_SIZE,default=DEFAULT_PATCH_SIZE,type=int)
+   parser.add_argument('-pr','--projection_dim',help='Dimension that image patches will be projected into [DEFAULT=%d]' % DEFAULT_PROJECTION_DIM,default=DEFAULT_PROJECTION_DIM,type=int)
+   parser.add_argument('-nh','--num-heads',help='Number of attention heads in model [DEFAULT=%d]' % DEFAULT_NUM_HEADS,default=DEFAULT_NUM_HEADS,type=int)
+   parser.add_argument('-tl','--transformer_layers',help='Number of transformer layers in model [DEFAULT=%d]' % DEFAULT_TRANSFORMER_LAYERS,default=DEFAULT_TRANSFORMER_LAYERS,type=int)
    parser.add_argument('-o','--output',help='output json filename where metrics will be stored[DEFAULT=%s]' % DEFUALT_OUTPUT,default=DEFUALT_OUTPUT)
 
    parser.add_argument('--interop',type=int,help='set Tensorflow "inter_op_parallelism_threads" session config varaible [default: %s]' % DEFAULT_INTEROP,default=DEFAULT_INTEROP)
@@ -57,23 +57,6 @@ def main():
    parser.add_argument('--logfilename',dest='logfilename',default=None,help='if set, logging information will go to file')
    args = parser.parse_args()
 
-    ###
-   global num_classes = 10
-   global input_shape = (28,28,1)
-   global batch_size = args.batch-size
-   global image_size = args.image-size  # We'll resize input images to this size
-   global patch_size = args.patch-size  # Size of the patches to be extract from the input images
-   global num_patches = (image_size // patch_size) ** 2
-   global projection_dim = args.projection-dim
-   global num_heads = args.num_heads
-   global transformer_units = [
-       projection_dim * 2,
-       projection_dim,
-   ]  # Size of the transformer layers
-   global transformer_layers = args.transformer-layers
-
-   global mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
-    ###
 
    hvd = None
    rank = 0
@@ -126,6 +109,12 @@ def main():
    logger.info('input:                       %s',args.input)
    logger.info('epochs:                      %s',args.epochs)
    logger.info('batch size:                  %s',args.batch_size)
+   logger.info('learning rate:               %s',args.learning_rate)
+   logger.info('image size:                  %s',args.image_size)
+   logger.info('patch size:                  %s',args.patch_size)
+   logger.info('projection dim:              %s',args.projection_dim)
+   logger.info('num heads:                   %s',args.num_heads)
+   logger.info('transformer layers:          %s',args.transformer_layers)
    logger.info('output:                      %s',args.output)
    logger.info('interop:                     %s',args.interop)
    logger.info('intraop:                     %s',args.intraop)
@@ -139,6 +128,12 @@ def main():
       'input': args.input,
       'epochs': args.epochs,
       'batch_size': args.batch_size,
+      'learning rate': args.learning_rate,
+      'image size': args.image_size,
+      'patch size': args.patch_size,
+      'projection dim': args.projection_dim,
+      'num heads': args.num_heads,
+      'transformer layers': args.transformer_layers,
       'interop': args.interop,
       'intraop': args.intraop,
       'horovod': args.horovod,
@@ -164,12 +159,29 @@ def main():
 
    test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(args.batch_size)
 
+   ###
+   num_classes = 10
+   input_shape = (28,28,1)
+   image_size = args.image_size  # We'll resize input images to this size
+   patch_size = args.patch_size  # Size of the patches to be extract from the input images
+   num_patches = (image_size // patch_size) ** 2
+   projection_dim = args.projection_dim
+   num_heads = args.num_heads
+   transformer_units = [
+       projection_dim * 2,
+       projection_dim,
+   ]  # Size of the transformer layers
+   transformer_layers = args.transformer_layers
+   mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+   ###
+
    # Create an instance of the model
-   model = create_vit_classifier()
+   model = create_vit_classifier(input_shape, image_size, patch_size, num_patches, num_heads, 
+                                 projection_dim, transformer_layers, transformer_units, num_classes, mlp_head_units)
 
    loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-   optimizer = tf.keras.optimizers.Adam(learning_rate = args.learning-rate)
+   optimizer = tf.keras.optimizers.Adam(learning_rate = args.learning_rate)
 
    # Add Horovod Distributed Optimizer
    if hvd:
@@ -241,22 +253,7 @@ def main():
       json.dump(output_data,open(args.output,'w'), sort_keys=True, indent=2)
    
 
-##############
-num_classes = 10
-input_shape = (28,28,1)
-batch_size = args.batch-size
-image_size = args.image-size  # We'll resize input images to this size
-patch_size = args.patch-size  # Size of the patches to be extract from the input images
-num_patches = (image_size // patch_size) ** 2
-projection_dim = args.projection-dim
-num_heads = args.num_heads
-transformer_units = [
-    projection_dim * 2,
-    projection_dim,
-]  # Size of the transformer layers
-transformer_layers = args.transformer-layers
-
-mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+############## Define Model #############
 
 def mlp(x, hidden_units, dropout_rate):
     for units in hidden_units:
@@ -297,20 +294,16 @@ class PatchEncoder(layers.Layer):
         return encoded
 
 
-def create_vit_classifier():
+def create_vit_classifier(input_shape, image_size, patch_size,
+                         num_patches, num_heads, projection_dim, transformer_layers,
+                         transformer_units, num_classes, mlp_head_units):
     inputs = layers.Input(shape=input_shape)
     resized = layers.Resizing(image_size, image_size)(inputs)
 
-    #TODO:
-    # Augment data.
-    #augmented = data_augmentation(inputs)
-
     # Create patches.
-    #patches = Patches(patch_size)(augmented)
     patches = Patches(patch_size)(resized)
     # Encode patches.
     encoded_patches = PatchEncoder(num_patches, projection_dim)(patches)
-    #print("encoded patches: ", encoded_patches)
 
     # Create multiple layers of the Transformer block.
     for _ in range(transformer_layers):
@@ -340,7 +333,8 @@ def create_vit_classifier():
     # Create the Keras model.
     model = keras.Model(inputs=inputs, outputs=logits)
     return model
-##############
+
+############## Model Defined #############
 
 
 @tf.function

@@ -215,7 +215,6 @@ class MyModel(Model):
       self.d2 = Dense(10)
 
    def call(self, x):
-      print(x.shape)
       x = self.conv1(x)
       x = self.flatten(x)
       x = self.d1(x)

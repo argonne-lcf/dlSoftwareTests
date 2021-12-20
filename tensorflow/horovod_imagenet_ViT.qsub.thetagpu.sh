@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#COBALT -n 8 
-#COBALT -t 60
+#COBALT -n 1 
+#COBALT -t 480
 #COBALT -q full-node
 #COBALT -A datascience
 
@@ -24,6 +24,6 @@ export OMP_NUM_THREADS=16
 #mpirun -x LD_LIBRARY_PATH -x PATH -x PYTHONPATH -np $RANKS -npernode $GPUS_PER_NODE --hostfile $COBALT_NODEFILE python horovod_mnist_ViT.py -i /lus/theta-fs0/software/datascience/datasets/mnist.npz --horovod --interop $OMP_NUM_THREADS --intraop $OMP_NUM_THREADS
 
 #Original - works on 1 node
-mpirun -x LD_LIBRARY_PATH -x PATH -x PYTHONPATH -np $((COBALT_JOBSIZE*8)) -npernode 8 --hostfile ${COBALT_NODEFILE} python horovod_mnist_ViT.py -i /lus/theta-fs0/software/datascience/datasets/mnist.npz --horovod --interop $OMP_NUM_THREADS --intraop $OMP_NUM_THREADS
+mpirun -x LD_LIBRARY_PATH -x PATH -x PYTHONPATH -np $((COBALT_JOBSIZE*8)) -npernode 8 --hostfile ${COBALT_NODEFILE} python horovod_imagenet_ViT.py -i /lus/theta-fs0/software/datascience/datasets/mnist.npz --horovod --interop $OMP_NUM_THREADS --intraop $OMP_NUM_THREADS
 
 #mpirun -hostfile $COBALT_NODEFILE -n $RANKS -npernode $GPUS_PER_NODE -- python horovod_mnist_ViT.py -i /lus/theta-fs0/software/datascience/datasets/mnist.npz --horovod --interop $OMP_NUM_THREADS --intraop $OMP_NUM_THREADS

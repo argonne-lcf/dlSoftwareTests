@@ -18,7 +18,7 @@ from tensorflow.keras import layers
 from tools.CalcMean import CalcMean
 
 DEFAULT_EPOCHS = 5
-DEFAULT_BATCH_SIZE = 1
+DEFAULT_BATCH_SIZE = 64
 DEFAULT_LEARNING_RATE = 0.001
 DEFAULT_IMAGE_SIZE = 72
 DEFAULT_PATCH_SIZE = 6
@@ -178,6 +178,17 @@ def main():
    # Create an instance of the model
    model = create_vit_classifier(input_shape, image_size, patch_size, num_patches, num_heads, 
                                  projection_dim, transformer_layers, transformer_units, num_classes, mlp_head_units)
+   #Count Trainable Parameters
+   total_parameters = 0
+   with tf.GradientTape() as tape:
+       for variable in model.trainable_weights:
+           # shape is an array of tf.Dimension
+           shape = variable.get_shape()
+           variable_parameters = 1
+           for dim in shape:
+               variable_parameters *= dim
+           total_parameters += variable_parameters
+       logger.info('[Trainable Parameters %d]', total_parameters)
 
    loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
@@ -197,6 +208,7 @@ def main():
    first_batch = True
    for epoch in range(args.epochs):
       # Reset the metrics at the start of the next epoch
+      #print("Starting Epoch: ", epoch)
       train_loss.reset_states()
       train_accuracy.reset_states()
       test_loss.reset_states()
@@ -219,6 +231,8 @@ def main():
             train_img_per_sec.add_value(current_img_rate)
          first_batch = False
          batch_counter += 1
+         #if batch_counter%100 == 0:
+         #   print(batch_counter)
 
       batch_counter = 0
       for test_images, test_labels in test_ds:

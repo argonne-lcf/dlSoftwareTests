@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.keras import Model
-from tensorflow.keras.mixed_precision import experimental as mixed_precisionss
+#from tensorflow.keras.mixed_precision import experimental as mixed_precisionss
 
 from tools.CalcMean import CalcMean
 

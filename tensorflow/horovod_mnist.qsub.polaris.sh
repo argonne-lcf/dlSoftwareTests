@@ -1,11 +1,11 @@
-#!/bin/bash -l
+#!/bin/bash
 #PBS -l walltime=00:30:00
 #PBS -l select=2:system=polaris
 #PBS -N hvd_tf_mnist
 
 cd $PBS_O_WORKDIR
 
-CONDAPATH=/home/parton/conda/2022-05-02/mconda3/
+CONDAPATH=/home/parton/conda/2022-05-26/mconda3/
 source $CONDAPATH/setup.sh
 
 MNIST_URL=https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz

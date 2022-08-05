@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #PBS -l walltime=00:30:00
-#PBS -l select=1:ncpus=64:ngpus=4
+#PBS -l select=2:ncpus=64:ngpus=4
 #PBS -N hvd_pt_mnist
 #PBS -k doe
 #PBS -j oe

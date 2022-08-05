@@ -1,11 +1,10 @@
 #!/bin/bash -l
-#COBALT -n 1
+#COBALT -n 2
 #COBALT -t 60
 #COBALT -q full-node
 #COBALT -A datascience
 
-module load conda/2021-09-2
-conda activate
+module load conda/2022-07-01; conda activate
 
 #MNIST_URL=https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
 #if [ ! -f "mnist.npz" ]; then
